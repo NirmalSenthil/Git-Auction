@@ -2,11 +2,10 @@ name: test auction
 on:
   workflow_dispatch:
     inputs:
-      docker-tag:
-        description: 'Tag for the Docker image'
+      environment:
+        description: 'Environment to deploy to (staging or qa)'
         required: true
-        default: 'latest'
-
+        default: 'staging'
 jobs:
   test:
     runs-on: ubuntu-latest
