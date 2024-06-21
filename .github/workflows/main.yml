@@ -1,12 +1,5 @@
 name: test auction
-on:
-  workflow_dispatch:
-    inputs:
-      docker-tag:
-        description: 'Tag for the Docker image'
-        required: true
-        default: 'latest'
-
+on: push
 jobs:
   test:
     runs-on: ubuntu-latest
