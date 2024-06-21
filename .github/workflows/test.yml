@@ -1,4 +1,4 @@
-name: test auction
+name: my test
 on: push
 
 jobs:
