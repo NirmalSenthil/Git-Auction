@@ -1,14 +1,30 @@
-name: test auction
+name: Deploy to ECS
 on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy to (staging or qa)'
+        description: 'Environment to deploy to (stage or qa)'
         required: true
-        default: 'staging'
+        default: 'stage'
+
 jobs:
-  test:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    steps: 
-    - name: testing
-      run: echo "hi da venna"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        run: aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} && aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} && aws configure set region ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ github.event.inputs.environment }}-app ./test-app/.
+          docker tag ${{ github.event.inputs.environment }}-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ github.event.inputs.environment }}-app:latest
+
+      - name: Push Docker image to ECR
+        run: docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ github.event.inputs.environment }}-image:latest
