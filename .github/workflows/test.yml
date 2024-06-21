@@ -1,0 +1,9 @@
+name: test auction
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps: 
+    - name: testing
+      run: echo "hi da ithu push la run agum"
