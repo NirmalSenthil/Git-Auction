@@ -32,4 +32,4 @@ jobs:
           fi
 
       - name: print env variable
-        run: echo "${{ env.NAME }}"
+        run: echo "${{ env.NAME_S }}"
