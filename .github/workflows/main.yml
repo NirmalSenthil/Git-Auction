@@ -9,6 +9,8 @@ on:
 
 jobs:
   build-and-deploy:
+    env:
+      ENV_FILE: env/${{ github.event.inputs.environment }}.env
     runs-on: ubuntu-latest
 
     steps:

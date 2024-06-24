@@ -1,0 +1,21 @@
+name: Deploy to ECS
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to (stage or qa)'
+        required: true
+        default: 'stage'
+
+jobs:
+  build-and-deploy:
+    env:
+      ENV_FILE: env/${{ github.event.inputs.environment }}.env
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: print selected env
+        run: echo "${{ env.NAME }}"
