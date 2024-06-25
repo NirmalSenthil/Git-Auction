@@ -55,7 +55,7 @@ jobs:
           # be deployed to ECS.
           echo " displayed ECR_REGISTRY URI = ${{ steps.login-ecr.outputs.registry }} "
           echo "______"
-          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg env=${{ env.IMAGE_BUILD_ENV }} ./test-app/Dockerfile-apache
+          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg env=${{ env.IMAGE_BUILD_ENV }} -f ./test-app/Dockerfile-apache
           docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo " docker build successfully completed :) "
