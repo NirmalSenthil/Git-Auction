@@ -37,7 +37,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: $AWS_DEFAULT_REGION
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -47,23 +47,31 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: $IMAGE_TAG
-          REPOSITORY: $IMAGE_NODEJS_REPO_NAME
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          REPOSITORY: ${{ IMAGE_NODEJS_REPO_NAME }}
         run: |
           # Build a docker container and
           # push it to ECR so that it can
           # be deployed to ECS.
           echo " displayed ECR_REGISTRY URI = ${{ steps.login-ecr.outputs.registry }}"
           echo "*************"
-          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg env=${IMAGE_BUILD_ENV} ./test-app/Dockerfile-nodejs
+          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg env=${{ env.IMAGE_BUILD_ENV }} -f Dockerfile-nodejs .
           docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo " docker build successfully completed :) "
 
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: nodejs-task-definition.json
+          container-name: nginx
+          image: ${{ steps.build-image.outputs.image }}
+		  
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: $AWS_ECS_NODEJS_TASK_DEFINITION
-          service: $AWS_ECS_NODEJS_SERVICE
-          cluster: $AWS_ECS_CLUSTER
-          wait-for-service-stability: true	
+          service: ${{ env.AWS_ECS_NODEJS_SERVICE }}
+          cluster: ${{ env.AWS_ECS_CLUSTER }}
+          wait-for-service-stability: true
