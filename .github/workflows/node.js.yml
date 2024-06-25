@@ -20,6 +20,11 @@ jobs:
       with:
         node-version: '18.16.1'
         cache: 'npm'
+    - name: Create package.json if it doesn't exist
+      run: |
+       if [ ! -f package.json ]; then
+         npm init -y
+       fi
     - run: npm install
     - run: npm ci
     - run: npm run build --if-present
