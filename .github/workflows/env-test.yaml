@@ -37,3 +37,6 @@ jobs:
 
       - name: print env variable
         run: echo "${{ env.IMAGE_BUILD_ENV }}"
+      - name: rest sometime
+        run: |
+          sleep 100;
