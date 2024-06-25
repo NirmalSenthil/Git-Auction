@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: print selected env
-        run: echo "${{ env.ENV_FILE }}"
+        run: echo "$ENV_FILE"
 
       - name: Load environment variables
         id: set-env
@@ -32,4 +32,4 @@ jobs:
           fi
 
       - name: print env variable
-        run: echo "${{ env.NAME }}"
+        run: echo "$NAME"
