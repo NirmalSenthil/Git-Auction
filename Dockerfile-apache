@@ -6,6 +6,7 @@ RUN yum update -y && \
 
 # Write hello world message
 RUN echo 'hi da vennamavanee' > /var/www/html/index.html
+RUN echo 'epdiyo image change aguthu doi' >> /var/www/html/index.html
 
 # Configure Apache
 RUN echo 'mkdir -p /var/run/httpd' >> /root/run_apache.sh && \
