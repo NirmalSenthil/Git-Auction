@@ -11,7 +11,7 @@ jobs:
   build-and-deploy:
     env:
       ENV_FILE: env/${{ github.event.inputs.environment }}.env
-	  AWS_DEFAULT_REGION: "us-east-1"
+      AWS_DEFAULT_REGION: "us-east-1"
     runs-on: ubuntu-latest
 
     steps:
@@ -54,11 +54,11 @@ jobs:
           # push it to ECR so that it can
           # be deployed to ECS.
           echo " displayed ECR_REGISTRY URI = ${{ steps.login-ecr.outputs.registry }}"
-	  echo "*************"
+          echo "*************"
           docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg env=${IMAGE_BUILD_ENV} ./test-app/Dockerfile-nodejs
           docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-	  echo " docker build successfully completed :) "
+          echo " docker build successfully completed :) "
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
