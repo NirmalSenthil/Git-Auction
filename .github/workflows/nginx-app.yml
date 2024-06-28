@@ -61,10 +61,69 @@ jobs:
           echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo " docker build successfully completed :) "
           
-      - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: nginx-task-definition.json
-          service: ${{ env.AWS_ECS_NGINX_SERVICE }}
-          cluster: ${{ env.AWS_ECS_CLUSTER }}
-          wait-for-service-stability: true  
+      - name: Deploy to ECS
+        run: |
+         aws ecs update-service --force-new-deployment --cluster ${{ env.AWS_ECS_CLUSTER }} --service ${{ env.AWS_ECS_NGINX_SERVICE }} --task-definition ${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}
+        
+         max_checks=30
+         check_count=0
+         success=false
+
+         check_deployment_status() {
+           service_info=$(aws ecs describe-services --cluster ${{ env.AWS_ECS_CLUSTER }} --services ${{ env.AWS_ECS_NGINX_SERVICE }} --query 'services[0].deployments[?status==`PRIMARY`]' --output json)
+           primary_deployment=$(echo "$service_info" | jq -c '.[0]')
+          
+           if [ -z "$primary_deployment" ]; then
+             echo '{"success": false}'
+             return
+           fi
+
+           desired_count=$(echo "$primary_deployment" | jq '.desiredCount')
+           running_count=$(echo "$primary_deployment" | jq '.runningCount')
+           rollout_state=$(echo "$primary_deployment" | jq -r '.rolloutState')
+           task_definition_arn=$(echo "$primary_deployment" | jq -r '.taskDefinition')
+
+           echo "Task Definition from AWS: $task_definition_arn"
+           echo "Expected Task Definition: ${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}"
+           echo "Desired Count: $desired_count, Running Count: $running_count"
+           echo "Rollout State: $rollout_state"
+
+           task_definition_name=$(basename "$task_definition_arn" | cut -d: -f1)
+
+           echo "Task Definition Name: $task_definition_name"
+
+           success_condition=$([ "$desired_count" -eq "$running_count" ] && [ "$task_definition_name" == "${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}" ] && [ "$rollout_state" == "COMPLETED" ])
+          
+           if [ "$success_condition" == true ]; then
+             echo '{"success": true, "desiredCount": '$desired_count', "runningCount": '$running_count'}'
+           else
+             echo '{"success": false, "desiredCount": '$desired_count', "runningCount": '$running_count'}'
+           fi
+         }
+
+         while [ "$check_count" -lt "$max_checks" ]; do
+           sleep 45
+           deployment_status=$(check_deployment_status)
+
+           echo "Deployment Status: $deployment_status"
+
+           success=$(echo "$deployment_status" | jq -r '.success')
+
+           if [ "$success" == "true" ]; then
+             success=true
+             break
+           fi
+
+           desired_count=$(echo "$deployment_status" | jq -r '.desiredCount')
+           running_count=$(echo "$deployment_status" | jq -r '.runningCount')
+
+           echo "Check $((check_count + 1)) of $max_checks: Desired tasks: $desired_count, Running tasks: $running_count."
+           check_count=$((check_count + 1))
+         done
+
+         if [ "$success" == true ]; then
+           echo "ECS deployment was successful!"
+         else
+           echo "ECS deployment verification failed! Deployment was not completed successfully."
+           exit 1
+         fi
