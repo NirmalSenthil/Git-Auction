@@ -28,7 +28,7 @@ jobs:
       - name: print env variable
         run: echo "${{ vars.IMAGE_BUILD_ENV }}"
       - name: test env
-        run: echo "$IMAGE_TAG"
+        run: echo "${{ vars.IMAGE_TAG }}"
       - name: rest sometime
         run: |
           sleep 10;
@@ -42,7 +42,7 @@ jobs:
       - name: print env variable
         run: echo "${{ vars.IMAGE_BUILD_ENV }}"
       - name: test env
-        run: echo "$IMAGE_TAG"
+        run: echo "${{ vars.IMAGE_TAG }}"
       - name: rest sometime
         run: |
           sleep 10;      
