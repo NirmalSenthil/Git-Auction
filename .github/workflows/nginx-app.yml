@@ -7,6 +7,9 @@ on:
         required: true
         default: 'stage'
 run-name: "#${{ github.run_number }} - ${{ github.event.inputs.environment }} - ${{ github.ref_name }}"
+concurrency: 
+  group: ${{ github.event.inputs.environment }}
+  cancel-in-progress: false
 
 jobs:
   build-and-deploy:
