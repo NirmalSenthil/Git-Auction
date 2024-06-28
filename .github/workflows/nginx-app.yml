@@ -109,6 +109,8 @@ jobs:
 
           if [ "$success" == true ]; then
             echo "ECS deployment was successful!"
+            echo "Check $((check_count)) of $max_checks: Desired tasks: $desired_count, Running tasks: $running_count."
           else
             echo "ECS deployment verification failed! Deployment was not completed successfully."
             exit 1
+          fi
