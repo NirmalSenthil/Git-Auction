@@ -15,6 +15,7 @@ jobs:
   build-and-deploy:
     env:
       ENV_FILE: env/${{ github.event.inputs.environment }}.env
+    environment: stage
     runs-on: ubuntu-latest
 
     steps:
@@ -23,17 +24,6 @@ jobs:
 
       - name: print selected env
         run: echo "$ENV_FILE"
-
-      - name: Load environment variables
-        id: set-env
-        run: |
-          echo "Loading environment variables from $ENV_FILE"
-          if [ -f $ENV_FILE ]; then
-            cat $ENV_FILE >> $GITHUB_ENV
-          else
-            echo "$ENV_FILE does not exist"
-            exit 1
-          fi
 
       - name: print env variable
         run: echo "${{ env.IMAGE_BUILD_ENV }}"
