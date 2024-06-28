@@ -69,33 +69,6 @@ jobs:
          check_count=0
          success=false
 
-         while [ "$check_count" -lt "$max_checks" ]; do
-           sleep 45
-           deployment_status=$(check_deployment_status)
-
-           echo "Deployment Status: $deployment_status"
-
-           success=$(echo "$deployment_status" | jq -r '.success')
-
-           if [ "$success" == "true" ]; then
-             success=true
-             break
-           fi
-
-           desired_count=$(echo "$deployment_status" | jq -r '.desiredCount')
-           running_count=$(echo "$deployment_status" | jq -r '.runningCount')
-
-           echo "Check $((check_count + 1)) of $max_checks: Desired tasks: $desired_count, Running tasks: $running_count."
-           check_count=$((check_count + 1))
-         done
-
-         if [ "$success" == true ]; then
-           echo "ECS deployment was successful!"
-         else
-           echo "ECS deployment verification failed! Deployment was not completed successfully."
-           exit 1
-         fi         
-
          check_deployment_status() {
            service_info=$(aws ecs describe-services --cluster ${{ env.AWS_ECS_CLUSTER }} --services ${{ env.AWS_ECS_NGINX_SERVICE }} --query 'services[0].deployments[?status==`PRIMARY`]' --output json)
            primary_deployment=$(echo "$service_info" | jq -c '.[0]')
@@ -118,7 +91,7 @@ jobs:
            task_definition_name=$(basename "$task_definition_arn" | cut -d: -f1)
 
            echo "Task Definition Name: $task_definition_name"
-          
+           echo "maybe error on this"
            if [ "$desired_count" -eq "$running_count" ] && [ "$task_definition_name" == "${{ secrets.AWS_ECS_NODEJS_TASK_DEFINITION }}" ] && [ "$rollout_state" == "COMPLETED" ]; then
              echo '{"success": true, "desiredCount": '$desired_count', "runningCount": '$running_count'}'
            else
@@ -126,4 +99,31 @@ jobs:
            fi
          }
 
+         while [ "$check_count" -lt "$max_checks" ]; do
+           echo "going to sleep 45s"
+           sleep 45
+           deployment_status=$(check_deployment_status)
 
+           echo "Deployment Status: $deployment_status"
+
+           success=$(echo "$deployment_status" | jq -r '.success')
+           echo "result = $success"
+
+           if [ "$success" == "true" ]; then
+             success=true
+             break
+           fi
+
+           desired_count=$(echo "$deployment_status" | jq -r '.desiredCount')
+           running_count=$(echo "$deployment_status" | jq -r '.runningCount')
+
+           echo "Check $((check_count + 1)) of $max_checks: Desired tasks: $desired_count, Running tasks: $running_count."
+           check_count=$((check_count + 1))
+         done
+
+         if [ "$success" == true ]; then
+           echo "ECS deployment was successful!"
+         else
+           echo "ECS deployment verification failed! Deployment was not completed successfully."
+           exit 1
+         fi
