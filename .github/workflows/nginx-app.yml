@@ -85,7 +85,7 @@ jobs:
             task_definition_arn=$(echo "$deployment_status" | jq -r '.taskDefinition')
 
             echo "Task Definition from AWS: $task_definition_arn"
-            echo "Expected Task Definition:  ${{ env.AWS_ECS_NGINX_SERVICE }}"
+            echo "Expected Task Definition:  ${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}"
             echo "Desired Count: $desired_count, Running Count: $running_count"
             echo "Rollout State: $rollout_state"
 
@@ -93,7 +93,7 @@ jobs:
 
             echo "Task Definition Name: $task_definition_name"
 
-            if [ "$desired_count" == "$running_count" ] && [ "$task_definition_name" == " ${{ env.AWS_ECS_NGINX_SERVICE }}" ] && [ "$rollout_state" == "COMPLETED" ]; then
+            if [ "$desired_count" == "$running_count" ] && [ "$task_definition_name" == " ${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}" ] && [ "$rollout_state" == "COMPLETED" ]; then
               echo "Deployment Status: Success"
               success=true
               break
