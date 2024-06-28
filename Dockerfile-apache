@@ -7,7 +7,7 @@ RUN yum update -y && \
 # Write hello world message
 RUN echo 'hi bro' > /var/www/html/index.html
 RUN echo 'epdiyo script work aguthu bro' >> /var/www/html/index.html
-RUN echo 'task status validation completed :) ' >> /var/www/html/index.html
+RUN echo '>>>>>>>task status validation completed :) ' >> /var/www/html/index.html
 
 # Configure Apache
 RUN echo 'mkdir -p /var/run/httpd' >> /root/run_apache.sh && \
