@@ -92,6 +92,7 @@ jobs:
 
            echo "Task Definition Name: $task_definition_name"
            echo "maybe error on this"
+           echo " $task_definition_name is same as ${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}"
            if [ "$desired_count" -eq "$running_count" ] && [ "$task_definition_name" == "${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}" ] && [ "$rollout_state" == "COMPLETED" ]; then
              echo '{"success": true, "desiredCount": '$desired_count', "runningCount": '$running_count'}'
            else
