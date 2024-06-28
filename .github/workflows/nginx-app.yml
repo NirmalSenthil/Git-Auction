@@ -91,10 +91,8 @@ jobs:
            task_definition_name=$(basename "$task_definition_arn" | cut -d: -f1)
 
            echo "Task Definition Name: $task_definition_name"
-
-           success_condition=$([ "$desired_count" -eq "$running_count" ] && [ "$task_definition_name" == "${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}" ] && [ "$rollout_state" == "COMPLETED" ])
           
-           if [ "$success_condition" == true ]; then
+           if [ "$desired_count" -eq "$running_count" ] && [ "$task_definition_name" == "${{ secrets.AWS_ECS_NODEJS_TASK_DEFINITION }}" ] && [ "$rollout_state" == "COMPLETED" ]; then
              echo '{"success": true, "desiredCount": '$desired_count', "runningCount": '$running_count'}'
            else
              echo '{"success": false, "desiredCount": '$desired_count', "runningCount": '$running_count'}'
