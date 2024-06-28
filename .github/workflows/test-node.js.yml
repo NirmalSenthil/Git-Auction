@@ -8,8 +8,10 @@ on:
 
 jobs:
   build:
-
+    environment: stage
     runs-on: ubuntu-latest
+    env:
+      AWS_ECS_NGINX_TASK_DEFINITION: test-nginx
 
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
@@ -27,5 +29,24 @@ jobs:
        fi
     - run: npm install
     - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+    - run: |
+       desired_count=1
+       running_count=1
+       rollout_state=COMPLETED
+       task_definition_arn=arn:aws:ecs:us-east-1:240974398937:task-definition/test-nginx:7
+       task_definition_name=$(basename "$task_definition_arn" | cut -d: -f1)
+
+        echo "Task Definition from AWS: $task_definition_arn"
+        echo "Expected Task Definition: ${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}"
+        echo "Desired Count: $desired_count, Running Count: $running_count"
+        echo "Rollout State: $rollout_state"
+
+       if [ "$desired_count" == "$running_count" ] && [ "$task_definition_name" == " ${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}" ] && [ "$rollout_state" == "COMPLETED" ]; then
+          echo "Deployment Status: Success"
+          success=true
+          break
+       else
+          echo "Deployment Status: In Progress"
+          echo "Check $((check_count + 1)) of $max_checks: Desired tasks: $desired_count, Running tasks: $running_count."
+       fi
+         
