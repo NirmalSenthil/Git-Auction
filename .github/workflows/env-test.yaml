@@ -26,7 +26,7 @@ jobs:
         run: echo "$ENV_FILE"
 
       - name: print env variable
-        run: echo "${{ vars.IMAGE_BUILD_ENV }}"
+        run: echo "$MAGE_BUILD_ENV"
       - name: rest sometime
         run: |
           sleep 10;
