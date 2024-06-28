@@ -27,6 +27,23 @@ jobs:
 
       - name: print env variable
         run: echo "${{ vars.IMAGE_BUILD_ENV }}"
+      - name: test env
+        run: echo "$IMAGE_TAG"
       - name: rest sometime
         run: |
           sleep 10;
+  qa-job:
+    environment: qa
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: print env variable
+        run: echo "${{ vars.IMAGE_BUILD_ENV }}"
+      - name: test env
+        run: echo "$IMAGE_TAG"
+      - name: rest sometime
+        run: |
+          sleep 10;      
+    
