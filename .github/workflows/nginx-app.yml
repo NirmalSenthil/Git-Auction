@@ -62,68 +62,51 @@ jobs:
           
       - name: Deploy to ECS
         run: |
-         aws ecs update-service --force-new-deployment --cluster ${{ env.AWS_ECS_CLUSTER }} --service ${{ env.AWS_ECS_NGINX_SERVICE }} --task-definition ${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}
-        
-         max_checks=30
-         check_count=0
-         success=false
+          set -e
 
-         check_deployment_status() {
-           service_info=$(aws ecs describe-services --cluster ${{ env.AWS_ECS_CLUSTER }} --services ${{ env.AWS_ECS_NGINX_SERVICE }} --query 'services[0].deployments[?status==`PRIMARY`]' --output json)
-           primary_deployment=$(echo "$service_info" | jq -c '.[0]')
-          
-           if [ -z "$primary_deployment" ]; then
-             echo '{"success": false}'
-             return
-           fi
+          aws ecs update-service --force-new-deployment --cluster ${{ env.AWS_ECS_CLUSTER }} --service ${{ env.AWS_ECS_NGINX_SERVICE }} --task-definition ${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}
 
-           desired_count=$(echo "$primary_deployment" | jq '.desiredCount')
-           running_count=$(echo "$primary_deployment" | jq '.runningCount')
-           rollout_state=$(echo "$primary_deployment" | jq -r '.rolloutState')
-           task_definition_arn=$(echo "$primary_deployment" | jq -r '.taskDefinition')
+          max_checks=15
+          check_count=0
+          success=false
 
-           echo "Task Definition from AWS: $task_definition_arn"
-           echo "Expected Task Definition: ${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}"
-           echo "Desired Count: $desired_count, Running Count: $running_count"
-           echo "Rollout State: $rollout_state"
+          while [ "$check_count" -lt "$max_checks" ]; do
+            sleep 45
+            deployment_status=$(aws ecs describe-services --cluster ${{ env.AWS_ECS_CLUSTER }} --services ${{ env.AWS_ECS_NGINX_SERVICE }} --query 'services[0].deployments[?status==`PRIMARY`]' --output json | jq -c '.[0]')
 
-           task_definition_name=$(basename "$task_definition_arn" | cut -d: -f1)
+            if [ -z "$deployment_status" ]; then
+              echo "No primary deployment found."
+              break
+            fi
 
-           echo "Task Definition Name: $task_definition_name"
-           echo "maybe error on this"
-           echo " $task_definition_name is same as ${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}"
-           if [ "$desired_count" -eq "$running_count" ] && [ "$task_definition_name" == "${{ env.AWS_ECS_NGINX_TASK_DEFINITION }}" ] && [ "$rollout_state" == "COMPLETED" ]; then
-             echo '{"success": true, "desiredCount": '$desired_count', "runningCount": '$running_count'}'
-           else
-             echo '{"success": false, "desiredCount": '$desired_count', "runningCount": '$running_count'}'
-           fi
-         }
+            desired_count=$(echo "$deployment_status" | jq '.desiredCount')
+            running_count=$(echo "$deployment_status" | jq '.runningCount')
+            rollout_state=$(echo "$deployment_status" | jq -r '.rolloutState')
+            task_definition_arn=$(echo "$deployment_status" | jq -r '.taskDefinition')
 
-         while [ "$check_count" -lt "$max_checks" ]; do
-           echo "going to sleep 45s"
-           sleep 45
-           deployment_status=$(check_deployment_status)
+            echo "Task Definition from AWS: $task_definition_arn"
+            echo "Expected Task Definition:  ${{ env.AWS_ECS_NGINX_SERVICE }}"
+            echo "Desired Count: $desired_count, Running Count: $running_count"
+            echo "Rollout State: $rollout_state"
 
-           echo "Deployment Status: $deployment_status"
+            task_definition_name=$(basename "$task_definition_arn" | cut -d: -f1)
 
-           success=$(echo "$deployment_status" | jq -r '.success')
-           echo "result = $success"
+            echo "Task Definition Name: $task_definition_name"
 
-           if [ "$success" == "true" ]; then
-             success=true
-             break
-           fi
+            if [ "$desired_count" -eq "$running_count" ] && [ "$task_definition_name" == " ${{ env.AWS_ECS_NGINX_SERVICE }}" ] && [ "$rollout_state" == "COMPLETED" ]; then
+              echo "Deployment Status: Success"
+              success=true
+              break
+            else
+              echo "Deployment Status: In Progress"
+              echo "Check $((check_count + 1)) of $max_checks: Desired tasks: $desired_count, Running tasks: $running_count."
+            fi
 
-           desired_count=$(echo "$deployment_status" | jq -r '.desiredCount')
-           running_count=$(echo "$deployment_status" | jq -r '.runningCount')
+            check_count=$((check_count + 1))
+          done
 
-           echo "Check $((check_count + 1)) of $max_checks: Desired tasks: $desired_count, Running tasks: $running_count."
-           check_count=$((check_count + 1))
-         done
-
-         if [ "$success" == true ]; then
-           echo "ECS deployment was successful!"
-         else
-           echo "ECS deployment verification failed! Deployment was not completed successfully."
-           exit 1
-         fi
+          if [ "$success" == true ]; then
+            echo "ECS deployment was successful!"
+          else
+            echo "ECS deployment verification failed! Deployment was not completed successfully."
+            exit 1
