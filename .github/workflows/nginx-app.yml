@@ -40,25 +40,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
-     #- name: Login to Amazon ECR
-     #  id: login-ecr
-     #  uses: aws-actions/amazon-ecr-login@v2
-     #- name: Build, tag, and push image to Amazon ECR
-     #  id: build-image
-     #  env:
-     #    ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-     #    IMAGE_TAG: ${{ env.IMAGE_TAG }}
-     #    REPOSITORY: ${{ env.IMAGE_NGINX_REPO_NAME }}
-     #  run: |
-     #    # Build a docker container and
-     #    # push it to ECR so that it can
-     #    # be deployed to ECS.
-     #    echo " displayed ECR_REGISTRY URI = ${{ steps.login-ecr.outputs.registry }} "
-     #    echo "_______"
-     #    docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg env=${{ env.IMAGE_BUILD_ENV }} -f Dockerfile-apache .
-     #    docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
-     #    echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-     #    echo " docker build successfully completed :) "
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          REPOSITORY: ${{ env.IMAGE_NGINX_REPO_NAME }}
+        run: |
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
+          echo " displayed ECR_REGISTRY URI = ${{ steps.login-ecr.outputs.registry }} "
+          echo "_______"
+          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg env=${{ env.IMAGE_BUILD_ENV }} -f Dockerfile-apache .
+          docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo " docker build successfully completed :) "
           
       - name: Deploy to ECS
         run: |
@@ -104,6 +104,7 @@ jobs:
 
             check_count=$((check_count + 1))
             echo "Again going to check Task Status after 45sec."
+            echo "***************"
           done
 
           if [ "$success" == true ]; then
