@@ -1,5 +1,6 @@
 pipeline {
-    
+    agent any
+	
     options {
         timeout(time: 60, unit: 'MINUTES')
         lock(resource: "${env.JOB_NAME}-${env.ENVIRONMENT}")
