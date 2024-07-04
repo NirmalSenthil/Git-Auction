@@ -26,8 +26,8 @@ pipeline {
         stage ('testing env'){
 	  steps{
 	    script {
-		    echo " service name: ${AWS_ECS_SERVICE}"
-		    echo " cluster name: ${AWS_ECS_CLUSTER}
+		    echo "service name: ${AWS_ECS_SERVICE}"
+		    echo "cluster name: ${AWS_ECS_CLUSTER}"
 	    }
 	  }
 		 
