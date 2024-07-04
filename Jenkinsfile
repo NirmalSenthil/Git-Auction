@@ -15,7 +15,7 @@ pipeline {
         stage('Building image') {
             steps {
                 script {
-                    echo "this is tes ok in branch: env.BRANCH_NAME and env.ENVIRONMENT"
+                    echo "this is tes ok in branch: ${BRANCH_NAME} and ${ENVIRONMENT}"
                     echo "Build started with ID: ${BUILD_ID}"
                 }
             }
