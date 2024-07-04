@@ -1,11 +1,6 @@
 pipeline {
     agent any
 	
-    options {
-        timeout(time: 60, unit: 'MINUTES')
-        lock(resource: "${env.JOB_NAME}-${env.ENVIRONMENT}")
-    }
-
     environment {
         PROPERTIES = readProperties file: "${WORKSPACE}/env/${ENVIRONMENT}.properties"
         AWS_DEFAULT_REGION = "us-east-2"
