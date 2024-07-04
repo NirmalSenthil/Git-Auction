@@ -8,7 +8,6 @@ pipeline {
                 script {
                     currentBuild.displayName = "#${BUILD_NUMBER} - ${ENVIRONMENT} - ${GIT_BRANCH.replace('origin/', '')}"
                     checkout scm
-                    sh "aws --version"
                 }
             }
         }
